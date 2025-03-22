@@ -65,12 +65,7 @@ public class DeviceService {
      * @throws DeviceValidationException if the device is not found
      */
     public CompletableFuture<Device> getDeviceById(UUID id) {
-        return CompletableFuture.supplyAsync(() ->
-                deviceRepository.findById(id)
-                        .orElseThrow(() -> {
-                            logger.error(String.format("Device with id %s not found", id.toString()));
-                            return new DeviceValidationException("Device not found", HttpStatus.NOT_FOUND);
-                        }), executor);
+        return CompletableFuture.supplyAsync(() -> getExistingDevice(id), executor);
     }
 
     /**
@@ -83,11 +78,7 @@ public class DeviceService {
      */
     public CompletableFuture<Device> updateDevice(UUID id, Device updatedDevice) {
         return CompletableFuture.supplyAsync(() -> {
-            Device existingDevice = deviceRepository.findById(id)
-                    .orElseThrow(() -> {
-                        logger.error("Device not found with id: {}", id);
-                        return new DeviceValidationException("Device not found", HttpStatus.NOT_FOUND);
-                    });
+            Device existingDevice = getExistingDevice(id);
 
             if (existingDevice.getState() == DeviceState.IN_USE &&
                     (!existingDevice.getName().equals(updatedDevice.getName()) ||
@@ -101,6 +92,21 @@ public class DeviceService {
 
             return deviceRepository.save(updatedDevice);
         }, executor);
+    }
+
+    /**
+     * Retrieves an existing device by its ID.
+     *
+     * @param id the UUID of the device
+     * @return the device with the specified ID
+     * @throws DeviceValidationException if the device is not found
+     */
+    private Device getExistingDevice(UUID id) {
+        return deviceRepository.findById(id)
+                .orElseThrow(() -> {
+                    logger.error("Device not found with id: {}", id);
+                    return new DeviceValidationException("Device not found", HttpStatus.NOT_FOUND);
+                });
     }
 
     /**
@@ -148,11 +154,7 @@ public class DeviceService {
      */
     public CompletableFuture<Void> deleteDevice(UUID id) {
         return CompletableFuture.runAsync(() -> {
-            Device device = deviceRepository.findById(id)
-                    .orElseThrow(() -> {
-                        logger.error("Device not found with id: {}", id);
-                        return new DeviceValidationException("Device not found", HttpStatus.NOT_FOUND);
-                    });
+            Device device = getExistingDevice(id);
             if (device.getState() == DeviceState.IN_USE) {
                 logger.error("Device is in use and cannot be deleted");
                 throw new DeviceValidationException("In-use devices cannot be deleted", HttpStatus.NOT_ACCEPTABLE);
