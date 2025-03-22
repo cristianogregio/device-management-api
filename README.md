@@ -22,7 +22,7 @@ This project is a Spring Boot application that provides a RESTful API for managi
   - Mockito / JUnit 5
   - OpenAPI/Swagger
 - PostgreSQL 16
-- Docker / Docker Composer
+- Docker / Docker Compose
 
 ## Getting Started
 
@@ -65,7 +65,7 @@ This project is a Spring Boot application that provides a RESTful API for managi
 
 The application will start on port 8080.
 
-### Run the Application with Docker Composer
+### Run the Application with Docker Compose
 
 1. **Build the Docker image:**
    ```sh
